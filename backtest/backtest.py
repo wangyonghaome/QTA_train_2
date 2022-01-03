@@ -44,12 +44,14 @@ class Backtest:
         longInfo.loc[longInfo.iloc[:, 2] < longBars[1], 'liquid_long'] = -1
         longInfo['trdInfo'] = longInfo.long + longInfo.liquid_long
         longInfo['trdInfo'].fillna(method='pad', inplace=True)
-        longPoint = longInfo.loc[(longInfo.trdInfo == 1) & (longInfo.trdInfo.shift(1) == -1), ['time', 'milsec', 'trdInfo']]
-        liquidPoint = longInfo.loc[(longInfo.trdInfo == -1) & (longInfo.trdInfo.shift(1) == 1), ['time', 'milsec', 'trdInfo']]
+        longPoint = longInfo.loc[(longInfo.trdInfo == 1) & (longInfo.trdInfo.shift(1) == -1), ['time', 'milsec', 'trdInfo']].copy()
+        liquidPoint = longInfo.loc[(longInfo.trdInfo == -1) & (longInfo.trdInfo.shift(1) == 1), ['time', 'milsec', 'trdInfo']].copy()
         if len(longPoint) > len(liquidPoint):
             liquidPoint = liquidPoint.append(longInfo.iloc[-1][['time', 'milsec', 'trdInfo']])
+            liquidPoint.iloc[-1, 2] = -1
         elif len(longPoint) < len(liquidPoint):
             longPoint = longPoint.append(longInfo.iloc[0][['time', 'milsec', 'trdInfo']])
+            longPoint.iloc[-1, 2] = 1
         longPoint = longPoint.append(liquidPoint)
         return longPoint
 
@@ -62,13 +64,15 @@ class Backtest:
         shortInfo['trdInfo'] = shortInfo.short + shortInfo.liquid_short
         shortInfo['trdInfo'].fillna(method='pad', inplace=True)
         shortPoint = shortInfo.loc[
-            (shortInfo.trdInfo == -1) & (shortInfo.trdInfo.shift(1) == 1), ['time', 'milsec', 'trdInfo']]
+            (shortInfo.trdInfo == -1) & (shortInfo.trdInfo.shift(1) == 1), ['time', 'milsec', 'trdInfo']].copy()
         liquidPoint = shortInfo.loc[
-            (shortInfo.trdInfo == 1) & (shortInfo.trdInfo.shift(1) == -1), ['time', 'milsec', 'trdInfo']]
+            (shortInfo.trdInfo == 1) & (shortInfo.trdInfo.shift(1) == -1), ['time', 'milsec', 'trdInfo']].copy()
         if len(shortPoint) > len(liquidPoint):
             liquidPoint = liquidPoint.append(shortInfo.iloc[-1][['time', 'milsec', 'trdInfo']])
+            liquidPoint.iloc[-1, 2] = 1
         elif len(shortPoint) < len(liquidPoint):
             shortPoint = shortPoint.append(shortInfo.iloc[0][['time', 'milsec', 'trdInfo']])
+            shortPoint.iloc[-1, 2] = -1
         shortPoint = shortPoint.append(liquidPoint)
         return shortPoint
 

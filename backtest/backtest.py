@@ -84,6 +84,13 @@ class Backtest:
                             on=['time', 'milsec'], how='left')
         return longInfo, shortInfo
 
+    def plot_cdf(self,return_series,title=''):
+        plt.figure(dpi=300)
+        plt.hist(return_series,bins=50, density=True, cumulative=True, label='CDF', histtype='step')
+        plt.title(title)
+        plt.show()
+        return
+        
     def backtest(self,fee=3/10000,startday='20210804'):
         def get_factor_inf(df):
             def maxdrawdown(arr):
@@ -138,19 +145,11 @@ class Backtest:
         long_short['return_']=(long_short['cumu_nav'].diff()/long_short['cumu_nav'].shift()).fillna(0)
         factor_info['long_short']=get_factor_inf(long_short)
         #画图
-        plt.figure(dpi=300,figsize=(15,10))
-        i=1
         for key in trade_record:
             slice_return=trade_record[key].query('return_ !=0')['return_']
-            ax=plt.subplot(2,2,i)
-            ax.hist(slice_return.values,bins=50, density=True, cumulative=True, label='CDF', histtype='step')
-            plt.title(key)
-            i=i+1
-        ax=plt.subplot(2,2,i)
+            self.plot_cdf(slice_return.values,key)
         slice_ls_ret=long_short.query('return_ !=0')["return_"]
-        plt.hist(slice_ls_ret.values,bins=50, density=True, cumulative=True, label='CDF', histtype='step')
-        plt.title('long-short')
-        plt.show()
+        self.plot_cdf(slice_ls_ret.values,key)
         return pd.DataFrame(factor_info)
 
 
